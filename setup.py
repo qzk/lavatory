@@ -29,8 +29,6 @@ setup(
     author_email='ps-devops-tooling@example.com',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
-    setup_requires=['setuptools_scm'],
-    use_scm_version={'local_scheme': 'dirty-tag'},
     install_requires=REQUIREMENTS,
     include_package_data=True,
     keywords="gogo infrastructure python artifactory jfrog",

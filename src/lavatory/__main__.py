@@ -29,8 +29,7 @@ def root(ctx, verbose):
 @root.command()
 def version():
     """Print version information."""
-    import pkg_resources
-    lavatory_version = pkg_resources.get_distribution('lavatory').version
+    lavatory_version = '1.0.1'
     click.echo(lavatory_version)
 
 
