@@ -33,8 +33,9 @@ class Artifactory:
         self.artifactory.password = base64.encodebytes(bytes(self.credentials['artifactory_password'], 'utf-8'))
         skip_verify = int(os.getenv('LAVATORY_SKIP_CERT_VERIFY', '1'))
         self.artifactory.certbundle = False if skip_verify else os.getenv('LAVATORY_CERTBUNDLE_PATH', certifi.where())
+        self.sync_info_per_repo = {}
 
-    def repos(self, repo_type='local'):
+    def repos(self, repo_type='local', synced_only=False):
         """
         Return a dictionary of repos with basic info about each.
 
@@ -55,10 +56,37 @@ class Artifactory:
             if repo['repoType'].lower() != repo_type and repo_type != 'any':
                 LOG.debug("Skipping repo %s, not of type %s", repo['repoKey'], repo_type)
                 continue
-
+            if synced_only and not self.is_synced_repo(repo['repoKey']):
+                LOG.debug("Skipping repo %s because repo is not synced", repo['repoKey'])
+                continue
             repos[repo['repoKey']] = repo
 
         return repos
+
+    def is_synced_repo(self, repo=None):
+        if repo is None and self.repo_name is None:
+            raise Exception('why would you do this')
+        repo = repo if repo is not None else self.repo_name
+        sync_info = self.get_sync_info(repo)
+        if not sync_info or len(sync_info) == 0:
+            return False
+        for info in sync_info:
+            if info.get('enabled', False):
+                return True
+        return False
+
+    def get_sync_info(self, repo=None):
+        repo = repo if repo is not None else self.repo_name
+        if repo in self.sync_info_per_repo:
+            return self.sync_info_per_repo[repo]
+        try:
+            resp = self.artifactory.get('replications/{}'.format(repo))
+            repo_replication_info = resp.json()
+            self.sync_info_per_repo[repo] = repo_replication_info
+        except HTTPError as e:
+            # replication doesn't exist
+            self.sync_info_per_repo[repo] = False
+        return self.sync_info_per_repo[repo]
 
     def purge(self, artifacts):
         """ Purge artifacts from the specified repo.

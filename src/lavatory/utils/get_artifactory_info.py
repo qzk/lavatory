@@ -14,23 +14,23 @@ def _artifactory(artifactory=None, repo_names=None):
     return artifactory
 
 
-def get_storage(repo_names=None, repo_type=None):
+def get_storage(repo_names=None, repo_type=None, synced_only=False):
     artifactory = _artifactory(repo_names=repo_names)
     storage_info = []
     try:
-        storage_info = artifactory.repos(repo_type=repo_type)
+        storage_info = artifactory.repos(repo_type=repo_type, synced_only=synced_only)
     except requests.exceptions.HTTPError:
         LOG.warning('Account is not an admin and may not be able to get storage details.')
     LOG.debug('Storage info: %s', storage_info)
     return storage_info
 
 
-def get_repos(repo_names=None, repo_type='local'):
+def get_repos(repo_names=None, repo_type='local', synced_only=False):
     repos = []
     if repo_names:
         repos = repo_names
     else:
-        repos = get_storage(repo_names=repo_names, repo_type=repo_type)
+        repos = get_storage(repo_names=repo_names, repo_type=repo_type, synced_only=synced_only)
     return repos
 
 

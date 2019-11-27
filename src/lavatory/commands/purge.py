@@ -21,6 +21,8 @@ LOG = logging.getLogger(__name__)
 @click.option(
     '--default/--no-default', default=True, is_flag=True, help='Applies default retention policy.', show_default=True)
 @click.option(
+    '--synced-repos-only', default=False, is_flag=True, help='Only run against synced repo types.', show_default=True)
+@click.option(
     '--repo',
     default=None,
     multiple=True,
@@ -34,12 +36,12 @@ LOG = logging.getLogger(__name__)
     type=click.Choice(REPO_TYPES),
     show_default=True,
     help="The types of repositories to search for.")
-def purge(ctx, dryrun, policies_path, default, repo, repo_type):  # pylint: disable=too-many-arguments
+def purge(ctx, dryrun, policies_path, default, synced_repos_only, repo, repo_type):  # pylint: disable=too-many-arguments
     """Deletes artifacts based on retention policies."""
     LOG.debug('Passed args: %s, %s, %s, %s, %s, %s', ctx, dryrun, policies_path, default, repo, repo_type)
 
-    storage_info = get_storage(repo_names=repo, repo_type=repo_type)
-    selected_repos = get_repos(repo_names=repo, repo_type=repo_type)
+    storage_info = get_storage(repo_names=repo, repo_type=repo_type, synced_only=synced_repos_only)
+    selected_repos = get_repos(repo_names=repo, repo_type=repo_type, synced_only=synced_repos_only)
 
     apply_purge_policies(selected_repos, policies_path=policies_path, dryrun=dryrun, default=default)
     generate_purge_report(selected_repos, storage_info)

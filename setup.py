@@ -17,9 +17,29 @@
 """Lavatory installer"""
 
 from setuptools import find_packages, setup
+import os
 
 with open('requirements.txt', 'rt') as reqs_file:
     REQUIREMENTS = reqs_file.readlines()
+
+base_path = os.path.abspath(os.path.dirname(__file__))
+version_file = os.path.join(base_path, 'version')
+
+version = os.getenv('PACKAGE_VERSION')
+if version:
+    with open(version_file, 'w') as f:
+        f.write(version.strip())
+else:
+    if os.path.exists(version_file):
+        with open(version_file, 'r') as f:
+            version = f.read().strip()
+    else:
+        raise RuntimeError('Version could not be determined')
+
+if not version:
+    raise RuntimeError('version value is ' + str(version))
+
+data_files = [('', ['version'])]
 
 setup(
     name='lavatory',
@@ -36,6 +56,8 @@ setup(
     download_url='https://github.com/gogoair/lavatory',
     platforms=['OS Independent'],
     license='Apache License (2.0)',
+    version=version,
+    data_files=data_files,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

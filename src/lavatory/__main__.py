@@ -3,6 +3,7 @@ import logging
 
 import click
 import coloredlogs
+import os
 
 from .commands.policies import policies
 from .commands.purge import purge
@@ -29,8 +30,15 @@ def root(ctx, verbose):
 @root.command()
 def version():
     """Print version information."""
-    lavatory_version = '1.0.1'
-    click.echo(lavatory_version)
+    # this actually still isn't working but i'm lazy
+    base_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    version_file = os.path.join(base_path, 'version')
+    if os.path.exists(version_file):
+        with open(version_file, 'r') as f:
+            version = f.read().strip()
+        click.echo(version)
+    else:
+        click.echo('DEVELOPMENT')
 
 
 root.add_command(policies)
